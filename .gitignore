@@ -5,3 +5,8 @@ desktop.ini
 *.tmp
 *.log
 user_presentation_analysis.txt
+
+# Photos / personal images
+photos/
+*.jpeg
+*.jpg
