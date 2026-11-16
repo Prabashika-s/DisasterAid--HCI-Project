@@ -1,0 +1,55 @@
+<svg width="390" height="844" viewBox="0 0 390 844" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="390" height="844" rx="44" fill="#0B1120"/>
+  <text x="32" y="38" fill="#F8FAFC" font-family="Inter, sans-serif" font-size="14" font-weight="600">09:41</text>
+  <text x="320" y="38" fill="#F8FAFC" font-family="Inter, sans-serif" font-size="12" font-weight="600">5G 🔋</text>
+
+  <!-- Top Bar -->
+  <text x="24" y="75" fill="#94A3B8" font-size="16">❮ Back</text>
+  <text x="195" y="75" text-anchor="middle" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="16" font-weight="800">Nearby Shelters</text>
+  <text x="366" y="75" text-anchor="end" fill="#10B981" font-family="Inter, sans-serif" font-size="11" font-weight="700">✓ Cached</text>
+
+  <!-- Offline Ready Pill -->
+  <rect x="20" y="95" width="350" height="34" rx="10" fill="#1E293B" stroke="#3B82F6"/>
+  <text x="36" y="117" fill="#60A5FA" font-family="Inter, sans-serif" font-size="11">💾 <strong>Offline Ready:</strong> Cached routes viewable without internet</text>
+
+  <!-- Shelter Card 1 (Recommended) -->
+  <rect x="20" y="145" width="350" height="175" rx="22" fill="#1E293B" stroke="#3B82F6" stroke-width="2"/>
+  <rect x="36" y="160" width="165" height="22" rx="6" fill="#2563EB"/>
+  <text x="118" y="175" text-anchor="middle" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="10" font-weight="800">RECOMMENDED • 800M AWAY</text>
+  
+  <text x="36" y="205" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="16" font-weight="800">Kalutara North Community Hall</text>
+  <text x="36" y="224" fill="#94A3B8" font-family="Inter, sans-serif" font-size="12">Main High-Level Road (Elevated Sanctuary)</text>
+
+  <!-- Badges -->
+  <rect x="36" y="238" width="115" height="22" rx="6" fill="#0F172A"/>
+  <text x="44" y="253" fill="#E2E8F0" font-family="Inter, sans-serif" font-size="10.5">♿ Wheelchair Ramp</text>
+  <rect x="158" y="238" width="90" height="22" rx="6" fill="#064E3B"/>
+  <text x="166" y="253" fill="#6EE7B7" font-family="Inter, sans-serif" font-size="10.5 font-weight=700">🟢 45% Full (Open)</text>
+
+  <rect x="36" y="270" width="220" height="36" rx="12" fill="#2563EB"/>
+  <text x="146" y="293" text-anchor="middle" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="12" font-weight="700">🗺️ Safe Elevation Route</text>
+
+  <rect x="268" y="270" width="88" height="36" rx="12" fill="#334155"/>
+  <text x="312" y="293" text-anchor="middle" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="12" font-weight="700">📞 Call</text>
+
+  <!-- Shelter Card 2 -->
+  <rect x="20" y="335" width="350" height="155" rx="22" fill="#1E293B" stroke="#334155"/>
+  <text x="36" y="365" fill="#94A3B8" font-family="Inter, sans-serif" font-size="11" font-weight="700">1.8 KM AWAY</text>
+  <text x="36" y="390" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="16" font-weight="800">St. John's College Main Hall</text>
+  <text x="36" y="408" fill="#94A3B8" font-family="Inter, sans-serif" font-size="12">Galle Road, Kalutara South</text>
+
+  <rect x="36" y="420" width="110" height="22" rx="6" fill="#0F172A"/>
+  <text x="44" y="435" fill="#E2E8F0" font-family="Inter, sans-serif" font-size="10.5">🩺 First Aid Station</text>
+  <rect x="154" y="420" width="115" height="22" rx="6" fill="#78350F"/>
+  <text x="162" y="435" fill="#FDE68A" font-family="Inter, sans-serif" font-size="10.5 font-weight=700">🟡 78% Full (Crowded)</text>
+
+  <rect x="36" y="450" width="318" height="30" rx="10" fill="#334155"/>
+  <text x="195" y="470" text-anchor="middle" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="11.5" font-weight="700">View Safe Path</text>
+
+  <!-- Shelter Card 3 -->
+  <rect x="20" y="505" width="350" height="135" rx="22" fill="#1E293B" stroke="#334155"/>
+  <text x="36" y="535" fill="#94A3B8" font-family="Inter, sans-serif" font-size="11" font-weight="700">3.2 KM AWAY</text>
+  <text x="36" y="560" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="16" font-weight="800">Bodhiraja Temple Complex</text>
+  <text x="36" y="578" fill="#94A3B8" font-family="Inter, sans-serif" font-size="12">Temple Hill Road, Kalutara</text>
+  <text x="36" y="605" fill="#6EE7B7" font-family="Inter, sans-serif" font-size="11" font-weight="700">🟢 High Ground Hill Sanctuary</text>
+</svg>

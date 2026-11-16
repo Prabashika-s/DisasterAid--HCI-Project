@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DisasterAid - Human-Centred Disaster Preparedness & Response System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af',
+            },
+            danger: {
+              50: '#fef2f2',
+              100: '#fee2e2',
+              500: '#ef4444',
+              600: '#dc2626',
+              700: '#b91c1c',
+            },
+            warning: {
+              50: '#fffbeb',
+              500: '#f59e0b',
+              600: '#d97706',
+            },
+            success: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Accessibility Scaler Styles */
+    :root {
+      --font-scale: 1;
+    }
+    .text-scale-base {
+      font-size: calc(1rem * var(--font-scale));
+    }
+    .text-scale-lg {
+      font-size: calc(1.125rem * var(--font-scale));
+    }
+    .text-scale-xl {
+      font-size: calc(1.25rem * var(--font-scale));
+    }
+    .text-scale-2xl {
+      font-size: calc(1.5rem * var(--font-scale));
+    }
+    .text-scale-sm {
+      font-size: calc(0.875rem * var(--font-scale));
+    }
+    .text-scale-xs {
+      font-size: calc(0.75rem * var(--font-scale));
+    }
+
+    /* WCAG AAA High Contrast Theme */
+    body.high-contrast {
+      background-color: #000000 !important;
+      color: #ffffff !important;
+    }
+    body.high-contrast .bg-white,
+    body.high-contrast .bg-slate-50,
+    body.high-contrast .bg-slate-100 {
+      background-color: #121212 !important;
+      color: #ffff00 !important;
+      border: 2px solid #ffff00 !important;
+    }
+    body.high-contrast .text-slate-600,
+    body.high-contrast .text-slate-500,
+    body.high-contrast .text-slate-700 {
+      color: #ffffff !important;
+    }
+    body.high-contrast button {
+      border: 2px solid #ffff00 !important;
+      font-weight: 800 !important;
+    }
+
+    /* Pulse animation for SOS countdown */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 25px rgba(220, 38, 38, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+    }
+    .sos-pulse {
+      animation: pulse-ring 1.8s infinite;
+    }
+
+    /* Custom Mobile Scrollbar */
+    .mobile-screen::-webkit-scrollbar {
+      width: 4px;
+    }
+    .mobile-screen::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    /* Smooth transitions */
+    * {
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-800 antialiased min-h-screen flex flex-col font-sans select-none">
+
+  <!-- ================= TOP GLOBAL CONTROLLER BAR (HCI Evaluator & Accessibility Header) ================= -->
+  <header class="bg-slate-800 text-white border-b border-slate-700 px-4 py-2.5 shadow-md z-50 sticky top-0">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Title & Branding -->
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center shadow-lg font-black text-white text-xl">
+          ⛑️
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-extrabold text-lg tracking-tight text-white">DisasterAid</h1>
+            <span class="text-xs bg-red-500/20 text-red-400 font-semibold px-2 py-0.5 rounded-full border border-red-500/30">HCI Prototype</span>
+          </div>
+          <p class="text-xs text-slate-400">BSIT 31073 Human-Computer Interaction</p>
+        </div>
+      </div>
+
+      <!-- Center: Role Switcher (Resident Mobile vs Officer Dashboard) -->
+      <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-700">
+        <button id="btnRoleResident" onclick="setRole('resident')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-blue-600 text-white shadow">
+          <span>📱</span>
+          <span>Resident App (Mobile)</span>
+        </button>
+        <button id="btnRoleOfficer" onclick="setRole('officer')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-slate-300 hover:text-white">
+          <span>💻</span>
+          <span>Officer Dashboard</span>
+          <span id="officerBadgeCount" class="ml-1 bg-red-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">3</span>
+        </button>
+      </div>
+
+      <!-- Right: Accessibility Controls & Language Switcher -->
+      <div class="flex items-center flex-wrap gap-2 text-xs">
+        <!-- Language Switcher -->
+        <div class="flex items-center bg-slate-900 rounded-lg p-1 border border-slate-700">
+          <button onclick="setLanguage('en')" id="langEn" class="px-2 py-1 rounded font-bold text-white bg-slate-700">EN</button>
+          <button onclick="setLanguage('si')" id="langSi" class="px-2 py-1 rounded font-bold text-slate-300 hover:text-white">සිං</button>
+          <button onclick="setLanguage('ta')" id="langTa" class="px-2 py-1 rounded font-bold text-slate-300 hover:text-white">தமி</button>
+        </div>
+
+        <!-- Font Size Scaler (Kamala Persona) -->
+        <div class="flex items-center bg-slate-900 rounded-lg px-2 py-1 border border-slate-700 space-x-1" title="Adjust text size for readability">
+          <span class="text-slate-400 text-[11px] font-semibold">Font:</span>
+          <button onclick="setFontScale(1)" id="fontSm" class="px-1.5 py-0.5 rounded font-bold text-white bg-slate-700 text-xs">1x</button>
+          <button onclick="setFontScale(1.15)" id="fontMd" class="px-1.5 py-0.5 rounded font-bold text-slate-300 hover:text-white text-xs">1.2x</button>
+          <button onclick="setFontScale(1.3)" id="fontLg" class="px-1.5 py-0.5 rounded font-bold text-slate-300 hover:text-white text-xs">1.4x</button>
+        </div>
+
+        <!-- High Contrast Mode Toggle -->
+        <button onclick="toggleHighContrast()" id="btnContrast" class="bg-slate-900 hover:bg-slate-700 text-yellow-400 font-bold px-2.5 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1" title="WCAG AAA High Contrast">
+          <span>👁️</span>
+          <span>Contrast</span>
+        </button>
+
+        <!-- Simulated Connectivity (Online / Offline Toggle) -->
+        <button onclick="toggleOfflineSim()" id="btnNetwork" class="bg-emerald-950 text-emerald-400 border border-emerald-700/60 font-semibold px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5" title="Simulate disaster network blackout">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span id="netStatusText">📶 Online</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTAINER ================= -->
+  <main class="flex-1 flex items-center justify-center p-3 md:p-6 overflow-hidden">
+
+    <!-- ================= VIEW 1: RESIDENT MOBILE PHONE FRAME ================= -->
+    <div id="viewResident" class="w-full max-w-[420px] transition-all duration-300">
+      
+      <!-- Smartphone Bezel Mockup -->
+      <div class="bg-slate-950 rounded-[44px] p-3.5 shadow-2xl border-4 border-slate-700 ring-1 ring-slate-600 relative">
+        
+        <!-- Speaker / Camera Notch -->
+        <div class="absolute top-5 left-1/2 -translate-x-1/2 w-36 h-5 bg-slate-900 rounded-full flex items-center justify-center space-x-2 z-30 border border-slate-800">
+          <div class="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-800"></div>
+          <div class="w-12 h-1 bg-slate-800 rounded-full"></div>
+        </div>
+
+        <!-- Smartphone Screen Content -->
+        <div class="mobile-screen bg-slate-50 w-full h-[760px] rounded-[36px] overflow-y-auto overflow-x-hidden relative flex flex-col border border-slate-200">
+          
+          <!-- Mobile Status Bar -->
+          <div class="pt-2.5 px-6 pb-1 flex justify-between items-center text-[11px] font-semibold text-slate-800 z-20 bg-slate-50/90 backdrop-blur sticky top-0 border-b border-slate-200/50">
+            <span id="mobileClock">09:41</span>
+            <div class="flex items-center space-x-2">
+              <span id="mobileSignal" class="text-emerald-600 font-bold">5G</span>
+              <span>🔋 88%</span>
+            </div>
+          </div>
+
+          <!-- Offline Warning Banner (Condition: FR4, FR10) -->
+          <div id="mobileOfflineBanner" class="hidden bg-amber-500 text-slate-950 px-3 py-1.5 text-xs font-bold flex items-center justify-between sticky top-[29px] z-20 shadow-md">
+            <div class="flex items-center space-x-1.5">
+              <span>⚠️</span>
+              <span data-i18n="offlineBanner">Offline Mode: Showing cached shelter & safety data</span>
+            </div>
+            <span class="text-[10px] bg-amber-900 text-amber-100 px-1.5 py-0.5 rounded">Cached 09:15</span>
+          </div>
+
+          <!-- ================= SCREEN CONTAINER ================= -->
+          <div id="screenContainer" class="flex-1 flex flex-col">
+            
+            <!-- ---------------- SCREEN 0: WELCOME & SETUP ---------------- -->
+            <section id="screenWelcome" class="p-5 flex-1 flex flex-col justify-between hidden">
+              <div>
+                <div class="text-center my-6">
+                  <div class="w-20 h-20 bg-red-600 text-white rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-xl mb-3">
+                    ⛑️
+                  </div>
+                  <h2 class="text-scale-2xl font-black text-slate-900 tracking-tight" data-i18n="welcomeTitle">DisasterAid Sri Lanka</h2>
+                  <p class="text-scale-sm text-slate-600 mt-1" data-i18n="welcomeSubtitle">Immediate, accessible disaster alerts and emergency assistance.</p>
+                </div>
+
+                <!-- Language Selection -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-4">
+                  <label class="block text-scale-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="selectLanguage">Choose Preferred Language</label>
+                  <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setLanguage('en')" class="lang-opt-btn border-2 border-blue-600 bg-blue-50 text-blue-700 font-bold py-2.5 rounded-xl text-center text-sm">English</button>
+                    <button onclick="setLanguage('si')" class="lang-opt-btn border-2 border-slate-200 hover:border-slate-300 font-bold py-2.5 rounded-xl text-center text-sm">සිංහල</button>
+                    <button onclick="setLanguage('ta')" class="lang-opt-btn border-2 border-slate-200 hover:border-slate-300 font-bold py-2.5 rounded-xl text-center text-sm">தமிழ்</button>
+                  </div>
+                </div>
+
+                <!-- Location / District Selection -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-4">
+                  <label class="block text-scale-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="homeDistrict">Your District / Area</label>
+                  <select id="selectDistrict" onchange="updateDistrict(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 font-semibold text-slate-800 text-scale-sm focus:ring-2 focus:ring-blue-500">
+                    <option value="Ratnapura">Ratnapura (High Flood & Landslide Risk)</option>
+                    <option value="Kalutara" selected>Kalutara (Kalu Ganga Flood Risk)</option>
+                    <option value="Galle">Galle (Coastal / Tsunami Risk Area)</option>
+                    <option value="Colombo">Colombo (Kelani River Basin Alert)</option>
+                    <option value="Kandy">Kandy (Central Highlands Landslide Risk)</option>
+                    <option value="Matara">Matara (Nilwala River Flood Risk)</option>
+                  </select>
+                </div>
+
+                <!-- Accessibility Quick Toggles (Persona Kamala) -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                  <span class="block text-scale-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="accessibilityPref">Accessibility Options</span>
+                  <div class="space-y-2.5">
+                    <label class="flex items-center justify-between text-scale-sm text-slate-800 cursor-pointer">
+                      <span class="flex items-center space-x-2"><span>🔊</span> <span data-i18n="voiceNarration">Voice Audio Alerts</span></span>
+                      <input type="checkbox" id="checkVoiceSetup" checked class="w-5 h-5 accent-blue-600 rounded">
+                    </label>
+                    <label class="flex items-center justify-between text-scale-sm text-slate-800 cursor-pointer">
+                      <span class="flex items-center space-x-2"><span>🔍</span> <span data-i18n="largeTextSetup">Large Readable Text</span></span>
+                      <input type="checkbox" id="checkLargeTextSetup" onchange="setFontScale(this.checked ? 1.25 : 1)" class="w-5 h-5 accent-blue-600 rounded">
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Continue Button -->
+              <div class="mt-4 pb-2">
+                <button onclick="goToScreen('screenHome')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg shadow-blue-500/30 text-scale-base transition flex items-center justify-center space-x-2">
+                  <span data-i18n="btnContinue">Go to Dashboard</span>
+                  <span>➔</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- ---------------- SCREEN 1: HOME & ACTIVE ALERT (FR1, FR2, FR5) ---------------- -->
+            <section id="screenHome" class="p-4 flex-1 flex flex-col justify-between">
+              <div class="space-y-3.5">
+                
+                <!-- District & Audio Reader Bar -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-1.5 text-slate-600 text-scale-xs font-bold">
+                    <span>📍</span>
+                    <span id="homeLocationDisplay" class="text-slate-900 font-extrabold">Kalutara District</span>
+                    <button onclick="goToScreen('screenWelcome')" class="text-blue-600 underline ml-1 text-[11px]">(Change)</button>
+                  </div>
+                  <!-- Audio Speech button for older adults -->
+                  <button onclick="speakCurrentAlert()" class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold px-2.5 py-1 rounded-full text-[11px] flex items-center space-x-1 shadow-sm transition" title="Read alert aloud">
+                    <span>🔊</span>
+                    <span data-i18n="btnSpeak">Listen</span>
+                  </button>
+                </div>
+
+                <!-- CRITICAL DISASTER ALERT BANNER (High Visibility, Norman's Signifiers) -->
+                <div class="bg-gradient-to-br from-red-600 to-rose-700 rounded-3xl p-4 text-white shadow-xl shadow-red-500/20 border-2 border-red-500 relative overflow-hidden">
+                  <div class="absolute -right-4 -bottom-4 text-white/10 text-8xl font-black">⚠️</div>
+                  
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="bg-white/20 backdrop-blur text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-white/30" data-i18n="badgeSeverity">
+                      🔴 RED ALERT: MAJOR FLOOD
+                    </span>
+                    <span class="text-[11px] text-red-100 font-medium" id="alertTimestamp">Issued: 10 mins ago</span>
+                  </div>
+
+                  <h3 class="text-scale-xl font-black leading-tight text-white mb-1.5" data-i18n="alertTitle">
+                    Flash Flood Warning for Kalu River Basin
+                  </h3>
+                  <p class="text-scale-xs text-red-100 leading-relaxed mb-3" data-i18n="alertDesc">
+                    Water levels at Putupaula station exceeded Major Flood Level (12.2m). Rapid inundation expected in low-lying riverside areas.
+                  </p>
+
+                  <!-- Next Safe Action Card (Recognition over Recall) -->
+                  <div class="bg-black/30 backdrop-blur rounded-2xl p-3 border border-white/20">
+                    <div class="text-[10px] font-extrabold uppercase tracking-wide text-amber-300 flex items-center space-x-1 mb-1">
+                      <span>⚡</span>
+                      <span data-i18n="nextActionLabel">RECOMMENDED NEXT SAFE ACTION:</span>
+                    </div>
+                    <p class="text-scale-sm font-extrabold text-white" data-i18n="nextActionText">
+                      EVACUATE IMMEDIATELY to designated higher ground or Kalutara North Community Center. Avoid all riverbank roads.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- PRIMARY SOS TRIGGER BUTTON (Fitts' Law: Large, Prominent, Central Target) -->
+                <div class="pt-1">
+                  <button onclick="startSosWorkflow()" class="w-full bg-gradient-to-r from-red-600 via-red-500 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-3xl p-4 shadow-2xl shadow-red-600/40 border-4 border-red-400 flex items-center justify-between active:scale-[0.98] transition group cursor-pointer">
+                    <div class="flex items-center space-x-3.5">
+                      <div class="w-14 h-14 bg-white text-red-600 rounded-2xl flex items-center justify-center font-black text-2xl shadow-inner group-hover:scale-105 transition">
+                        🆘
+                      </div>
+                      <div class="text-left">
+                        <span class="block text-scale-xl font-black tracking-tight" data-i18n="btnSosTitle">REQUEST EMERGENCY HELP</span>
+                        <span class="block text-scale-xs text-red-100 font-medium" data-i18n="btnSosSub">One-tap SOS dispatch • 5s cancel window</span>
+                      </div>
+                    </div>
+                    <span class="text-2xl text-white/80 pr-1 group-hover:translate-x-1 transition">➔</span>
+                  </button>
+                </div>
+
+                <!-- QUICK ACTION CARDS GRID (Shneiderman's Consistency & Reduced Memory Load) -->
+                <div class="grid grid-cols-2 gap-2.5 pt-1">
+                  
+                  <!-- Card 1: Safety Guidance -->
+                  <button onclick="goToScreen('screenGuidance')" class="bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-left shadow-sm flex flex-col justify-between h-28 active:scale-95 transition">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-bold">
+                      📋
+                    </div>
+                    <div>
+                      <span class="block text-scale-sm font-black text-slate-800" data-i18n="navGuidance">Safety Guide</span>
+                      <span class="block text-[11px] text-slate-500" data-i18n="navGuidanceSub">What to do right now</span>
+                    </div>
+                  </button>
+
+                  <!-- Card 2: Safe Shelters & Map -->
+                  <button onclick="goToScreen('screenShelters')" class="bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-left shadow-sm flex flex-col justify-between h-28 active:scale-95 transition">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg font-bold">
+                      🏛️
+                    </div>
+                    <div>
+                      <span class="block text-scale-sm font-black text-slate-800" data-i18n="navShelters">Safe Shelters</span>
+                      <span class="block text-[11px] text-slate-500" data-i18n="navSheltersSub">Nearby evacuation points</span>
+                    </div>
+                  </button>
+
+                  <!-- Card 3: I Am Safe Check-in -->
+                  <button onclick="goToScreen('screenCheckin')" class="bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-left shadow-sm flex flex-col justify-between h-28 active:scale-95 transition">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg font-bold">
+                      💚
+                    </div>
+                    <div>
+                      <span class="block text-scale-sm font-black text-slate-800" data-i18n="navCheckin">"I Am Safe"</span>
+                      <span class="block text-[11px] text-slate-500" data-i18n="navCheckinSub">Inform family & friends</span>
+                    </div>
+                  </button>
+
+                  <!-- Card 4: Preparedness Checklist -->
+                  <button onclick="goToScreen('screenChecklist')" class="bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-left shadow-sm flex flex-col justify-between h-28 active:scale-95 transition">
+                    <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-lg font-bold">
+                      🎒
+                    </div>
+                    <div>
+                      <span class="block text-scale-sm font-black text-slate-800" data-i18n="navChecklist">Go-Bag Kit</span>
+                      <span class="block text-[11px] text-slate-500" id="checklistProgressQuick">6/8 items ready</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Official Sri Lanka Hotline Quick Bar -->
+              <div class="mt-3 pt-2 border-t border-slate-200/80 flex items-center justify-around text-slate-600 text-[11px] font-bold">
+                <a href="tel:117" class="hover:text-red-600 flex items-center space-x-1"><span>📞</span> <span>DMC: 117</span></a>
+                <span>•</span>
+                <a href="tel:1990" class="hover:text-red-600 flex items-center space-x-1"><span>🚑</span> <span>Suwa Seriya: 1990</span></a>
+                <span>•</span>
+                <a href="tel:119" class="hover:text-red-600 flex items-center space-x-1"><span>👮</span> <span>Police: 119</span></a>
+              </div>
+            </section>
+
+            <!-- ---------------- SCREEN 2: SAFETY GUIDANCE (FR2, FR3) ---------------- -->
+            <section id="screenGuidance" class="p-4 flex-1 flex flex-col justify-between hidden">
+              <div>
+                <!-- Top Nav -->
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                  <button onclick="goToScreen('screenHome')" class="flex items-center space-x-1 text-slate-600 hover:text-slate-900 font-bold text-scale-sm">
+                    <span>❮</span> <span data-i18n="btnBack">Back</span>
+                  </button>
+                  <h3 class="font-extrabold text-slate-900 text-scale-base" data-i18n="titleSafetyGuide">Hazard Safety Guide</h3>
+                  <button onclick="speakGuidance()" class="text-blue-600 font-bold text-xs flex items-center space-x-1">
+                    <span>🔊</span> <span data-i18n="btnSpeak">Read</span>
+                  </button>
+                </div>
+
+                <!-- Hazard Category Tabs -->
+                <div class="flex space-x-1.5 overflow-x-auto py-2.5 no-scrollbar">
+                  <button onclick="selectHazardGuidance('flood')" id="tabHazardFlood" class="hazard-tab px-3 py-1.5 rounded-xl font-extrabold text-xs whitespace-nowrap bg-blue-600 text-white shadow">🌊 Floods</button>
+                  <button onclick="selectHazardGuidance('landslide')" id="tabHazardLandslide" class="hazard-tab px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap bg-slate-200 text-slate-700 hover:bg-slate-300">⛰️ Landslides</button>
+                  <button onclick="selectHazardGuidance('cyclone')" id="tabHazardCyclone" class="hazard-tab px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap bg-slate-200 text-slate-700 hover:bg-slate-300">🌀 Cyclones</button>
+                  <button onclick="selectHazardGuidance('tsunami')" id="tabHazardTsunami" class="hazard-tab px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap bg-slate-200 text-slate-700 hover:bg-slate-300">🌊 Tsunamis</button>
+                  <button onclick="selectHazardGuidance('earthquake')" id="tabHazardQuake" class="hazard-tab px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap bg-slate-200 text-slate-700 hover:bg-slate-300">🏚️ Earthquakes</button>
+                </div>
+
+                <!-- Action Mode Segmented Switch (Evacuate vs Shelter-in-Place) -->
+                <div class="grid grid-cols-2 gap-1 bg-slate-200 p-1 rounded-xl my-2">
+                  <button onclick="setGuidanceMode('evacuate')" id="btnGuideEvacuate" class="py-2 text-xs font-black rounded-lg bg-red-600 text-white shadow">
+                    🚨 Evacuate Now
+                  </button>
+                  <button onclick="setGuidanceMode('shelter')" id="btnGuideShelter" class="py-2 text-xs font-bold rounded-lg text-slate-700 hover:text-slate-900">
+                    🏠 Shelter in Place
+                  </button>
+                </div>
+
+                <!-- Dynamic Step-by-Step Instructions List -->
+                <div id="guidanceStepsList" class="space-y-2.5 mt-2">
+                  <!-- Injected via JavaScript based on hazard & mode -->
+                </div>
+              </div>
+
+              <!-- Bottom Action -->
+              <div class="pt-3 pb-1">
+                <button onclick="goToScreen('screenShelters')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3 rounded-2xl text-scale-sm shadow-md flex items-center justify-center space-x-2">
+                  <span>🏛️</span>
+                  <span data-i18n="findNearestShelter">Find Safe Shelter on Map</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- ---------------- SCREEN 3: SHELTERS & SAFE ROUTES (FR4) ---------------- -->
+            <section id="screenShelters" class="p-4 flex-1 flex flex-col justify-between hidden">
+              <div>
+                <!-- Top Nav -->
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                  <button onclick="goToScreen('screenHome')" class="flex items-center space-x-1 text-slate-600 hover:text-slate-900 font-bold text-scale-sm">
+                    <span>❮</span> <span data-i18n="btnBack">Back</span>
+                  </button>
+                  <h3 class="font-extrabold text-slate-900 text-scale-base" data-i18n="titleShelters">Nearby Safe Shelters</h3>
+                  <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">3 Verified</span>
+                </div>
+
+                <!-- Offline Cache Notice -->
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-2.5 mt-2.5 flex items-center space-x-2 text-xs text-blue-900">
+                  <span>💾</span>
+                  <p><strong data-i18n="shelterCachedNotice">Offline Ready:</strong> These shelter directions are cached on your phone even without internet.</p>
+                </div>
+
+                <!-- Shelter List -->
+                <div class="space-y-3 mt-3">
+                  
+                  <!-- Shelter 1 (Nearest) -->
+                  <div class="bg-white border-2 border-blue-500 rounded-2xl p-3.5 shadow-sm relative">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <span class="bg-blue-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">Recommended • 800m</span>
+                        <h4 class="text-scale-base font-black text-slate-900 mt-1">Kalutara North Community Hall</h4>
+                        <p class="text-xs text-slate-600">Main Road, Kalutara North (Elevated Ground)</p>
+                      </div>
+                      <span class="text-2xl">🏛️</span>
+                    </div>
+
+                    <!-- Facility Badges -->
+                    <div class="flex flex-wrap gap-1.5 mt-2.5">
+                      <span class="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-semibold">♿ Wheelchair Ramp</span>
+                      <span class="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-semibold">💧 Drinking Water</span>
+                      <span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">🟢 45% Capacity (Open)</span>
+                    </div>
+
+                    <div class="mt-3 flex items-center space-x-2">
+                      <button onclick="showRouteDetails('Kalutara North Community Hall', '800m')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1 shadow">
+                        <span>🗺️</span> <span>Safe Route (Offline)</span>
+                      </button>
+                      <a href="tel:0342222222" class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-xl text-xs font-bold" title="Call Shelter">
+                        📞 Call
+                      </a>
+                    </div>
+                  </div>
+
+                  <!-- Shelter 2 -->
+                  <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <span class="bg-slate-200 text-slate-700 text-[10px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">1.8 km Away</span>
+                        <h4 class="text-scale-base font-black text-slate-900 mt-1">St. John's College Main Hall</h4>
+                        <p class="text-xs text-slate-600">Galle Road, Kalutara South</p>
+                      </div>
+                      <span class="text-2xl">🏫</span>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5 mt-2.5">
+                      <span class="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-semibold">🩺 First Aid Post</span>
+                      <span class="text-[11px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-bold">🟡 78% Capacity (Crowded)</span>
+                    </div>
+
+                    <div class="mt-3 flex items-center space-x-2">
+                      <button onclick="showRouteDetails('St. John\'s College', '1.8 km')" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1">
+                        <span>🗺️</span> <span>Safe Route</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Shelter 3 -->
+                  <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
+                    <div class="flex items-start justify-between">
+                      <div>
+                        <span class="bg-slate-200 text-slate-700 text-[10px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">3.2 km Away</span>
+                        <h4 class="text-scale-base font-black text-slate-900 mt-1">Bodhiraja Temple Complex</h4>
+                        <p class="text-xs text-slate-600">Temple Hill Road, Kalutara</p>
+                      </div>
+                      <span class="text-2xl">☸️</span>
+                    </div>
+                    <div class="mt-2.5">
+                      <span class="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">🟢 High Ground Sanctuary</span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Map Overlay Modal Simulation -->
+              <div id="modalRouteOverlay" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl">
+                  <div class="flex justify-between items-center pb-2 border-b">
+                    <h4 class="font-extrabold text-slate-900 text-sm" id="modalRouteTitle">Evacuation Path</h4>
+                    <button onclick="closeRouteDetails()" class="text-slate-500 font-bold text-lg">✕</button>
+                  </div>
+                  <!-- Simulated Route Graphic -->
+                  <div class="my-3 bg-slate-100 rounded-2xl p-4 border border-dashed border-slate-300 text-center">
+                    <div class="text-3xl mb-1">🗺️</div>
+                    <p class="text-xs font-bold text-slate-800">Simulated Safe Elevation Navigation</p>
+                    <p class="text-[11px] text-emerald-700 font-semibold mt-1">✓ Avoids low river road (Flood risk)</p>
+                    <div class="mt-3 text-left space-y-1.5 text-xs text-slate-600">
+                      <p>1. Head North on Station Road (400m)</p>
+                      <p>2. Turn Right onto High Level Bypass (300m)</p>
+                      <p>3. Community Center will be on your left</p>
+                    </div>
+                  </div>
+                  <button onclick="closeRouteDetails()" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs">Close Navigation</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- ---------------- SCREEN 4: SOS COUNTDOWN & CANCEL (Slip Prevention - FR5) ---------------- -->
+            <section id="screenSosCountdown" class="p-5 flex-1 flex flex-col justify-between items-center text-center bg-red-600 text-white hidden">
+              <div class="w-full pt-4">
+                <span class="bg-white/20 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full border border-white/30" data-i18n="sosPreparingTitle">
+                  EMERGENCY SOS INITIATED
+                </span>
+                <h3 class="text-scale-2xl font-black mt-3 leading-tight" data-i18n="sosCountdownNotice">
+                  Sending Your Distress Signal & Location In:
+                </h3>
+              </div>
+
+              <!-- Huge Digital Countdown (Shneiderman: Error Prevention) -->
+              <div class="my-6">
+                <div class="w-44 h-44 rounded-full bg-white text-red-600 flex flex-col items-center justify-center font-black shadow-2xl sos-pulse mx-auto border-8 border-red-300">
+                  <span id="sosCountdownTimer" class="text-7xl font-black tracking-tighter">5</span>
+                  <span class="text-xs uppercase tracking-wider text-slate-600 font-bold" data-i18n="secondsLeft">SECONDS</span>
+                </div>
+                <p class="text-xs text-red-100 mt-4 max-w-xs mx-auto" data-i18n="sosGpsNotice">
+                  📍 Collecting accurate GPS coordinates: <strong>6.5854° N, 79.9607° E</strong>
+                </p>
+              </div>
+
+              <!-- SLIP PREVENTION CANCEL BUTTON (Large, easily reachable, Shneiderman: Easy Reversal) -->
+              <div class="w-full space-y-2.5 pb-4">
+                <button onclick="cancelSosWorkflow()" class="w-full bg-white hover:bg-slate-100 text-red-600 font-black py-4 px-6 rounded-2xl shadow-2xl text-scale-lg border-4 border-amber-300 active:scale-95 transition cursor-pointer">
+                  <span data-i18n="btnCancelSos">✕ CANCEL REQUEST (I'M OK)</span>
+                </button>
+                <p class="text-[11px] text-red-200" data-i18n="cancelHelpText">Tapping Cancel immediately stops signal broadcast</p>
+              </div>
+            </section>
+
+            <!-- ---------------- SCREEN 5: SOS CONFIRMATION & TICKET (FR5, FR10) ---------------- -->
+            <section id="screenSosConfirmed" class="p-4 flex-1 flex flex-col justify-between hidden">
+              <div>
+                <!-- Success Header -->
+                <div class="text-center my-4">
+                  <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto shadow-md mb-2">
+                    ✓
+                  </div>
+                  <h3 class="text-scale-xl font-black text-slate-900" data-i18n="sosConfirmedTitle">Distress Signal Logged</h3>
+                  <p class="text-scale-xs text-slate-600 mt-0.5" data-i18n="sosConfirmedSub">Your emergency request has been transmitted to local coordinators.</p>
+                </div>
+
+                <!-- Ticket Card -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-2.5">
+                  <div class="flex justify-between items-center border-b pb-2">
+                    <span class="text-xs text-slate-500 font-bold">Request Ticket ID:</span>
+                    <span class="font-mono font-black text-red-600 text-sm" id="sosTicketId">#EM-8429</span>
+                  </div>
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-bold">Status:</span>
+                    <span class="bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full" id="sosLiveStatusBadge">⏳ Pending Local Officer</span>
+                  </div>
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-bold">Captured Location:</span>
+                    <span class="text-slate-800 font-semibold">Kalutara North (6.58°N, 79.96°E)</span>
+                  </div>
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-bold">Priority Level:</span>
+                    <span class="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded">High (Flash Flood)</span>
+                  </div>
+                </div>
+
+                <!-- Fallback Warning & Instructions (Norman: Closure) -->
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 mt-3">
+                  <h5 class="text-xs font-black text-amber-900 flex items-center space-x-1">
+                    <span>⚠️</span> <span data-i18n="fallbackHeading">Important Emergency Notice:</span>
+                  </h5>
+                  <p class="text-[11px] text-amber-800 mt-1 leading-relaxed" data-i18n="fallbackText">
+                    This prototype logs your request with the simulated disaster network. If life is in immediate danger and telephone lines are functioning, call national rescue hotlines directly:
+                  </p>
+                  <div class="grid grid-cols-3 gap-1.5 mt-2">
+                    <a href="tel:117" class="bg-white border border-amber-300 text-slate-800 text-center py-1.5 rounded-lg font-black text-xs hover:bg-amber-100">117 (DMC)</a>
+                    <a href="tel:1990" class="bg-white border border-amber-300 text-slate-800 text-center py-1.5 rounded-lg font-black text-xs hover:bg-amber-100">1990 (EMS)</a>
+                    <a href="tel:119" class="bg-white border border-amber-300 text-slate-800 text-center py-1.5 rounded-lg font-black text-xs hover:bg-amber-100">119 (Police)</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Return Home -->
+              <div class="pt-2 pb-1">
+                <button onclick="goToScreen('screenHome')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3.5 rounded-2xl text-scale-sm shadow">
+                  <span data-i18n="btnReturnDashboard">Return to Main Screen</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- ---------------- SCREEN 6: SAFE CHECK-IN (FR6) ---------------- -->
+            <section id="screenCheckin" class="p-4 flex-1 flex flex-col justify-between hidden">
+              <div>
+                <!-- Top Nav -->
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                  <button onclick="goToScreen('screenHome')" class="flex items-center space-x-1 text-slate-600 hover:text-slate-900 font-bold text-scale-sm">
+                    <span>❮</span> <span data-i18n="btnBack">Back</span>
+                  </button>
+                  <h3 class="font-extrabold text-slate-900 text-scale-base" data-i18n="titleSafeCheckin">"I Am Safe" Check-In</h3>
+                  <span>💚</span>
+                </div>
+
+                <p class="text-xs text-slate-600 mt-2" data-i18n="checkinExplainer">
+                  Quickly notify your family and contacts with one tap so they know you are out of danger without jamming network calls.
+                </p>
+
+                <!-- Status Selector -->
+                <div class="space-y-2 mt-4">
+                  <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider" data-i18n="yourStatus">Select Current Status</label>
+                  
+                  <button onclick="selectCheckinStatus(this, 'I am safe at home')" class="checkin-btn w-full bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-3 text-left flex items-center justify-between text-xs font-bold text-slate-800">
+                    <span class="flex items-center space-x-2"><span>🏡</span> <span>I am safe at home</span></span>
+                    <span class="text-emerald-600 font-bold">✓ Selected</span>
+                  </button>
+
+                  <button onclick="selectCheckinStatus(this, 'I have safely reached an evacuation shelter')" class="checkin-btn w-full bg-white border border-slate-200 rounded-2xl p-3 text-left flex items-center justify-between text-xs font-bold text-slate-800">
+                    <span class="flex items-center space-x-2"><span>🏛️</span> <span>I reached an evacuation shelter</span></span>
+                    <span class="text-slate-300">○</span>
+                  </button>
+
+                  <button onclick="selectCheckinStatus(this, 'Moving to higher ground now')" class="checkin-btn w-full bg-white border border-slate-200 rounded-2xl p-3 text-left flex items-center justify-between text-xs font-bold text-slate-800">
+                    <span class="flex items-center space-x-2"><span>🚶</span> <span>Moving to higher ground now</span></span>
+                    <span class="text-slate-300">○</span>
+                  </button>
+                </div>
+
+                <!-- Emergency Contacts Checklist -->
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200 mt-4 shadow-sm">
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider" data-i18n="recipients">Simulated Recipients (3)</span>
+                    <span class="text-[11px] text-blue-600 font-semibold">+ Add Contact</span>
+                  </div>
+                  <div class="space-y-2 text-xs text-slate-700">
+                    <div class="flex items-center justify-between">
+                      <span>👤 Amma (Mother)</span>
+                      <span class="text-emerald-600 font-bold text-[11px]">Ready (SMS)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span>👤 Nuwan (Brother)</span>
+                      <span class="text-emerald-600 font-bold text-[11px]">Ready (SMS)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span>👤 Village Grama Niladhari</span>
+                      <span class="text-emerald-600 font-bold text-[11px]">Ready (App)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Feedback Toast -->
+                <div id="checkinSuccessToast" class="hidden mt-3 bg-emerald-600 text-white p-3 rounded-xl text-xs font-bold text-center shadow-lg animate-bounce">
+                  ✓ "I Am Safe" broadcast transmitted successfully!
+                </div>
+              </div>
+
+              <!-- Send Button -->
+              <div class="pt-2 pb-1">
+                <button onclick="sendSafeCheckin()" id="btnSendCheckin" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-2xl text-scale-sm shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2">
+                  <span>📨</span>
+                  <span data-i18n="btnBroadcastSafe">Broadcast "I Am Safe" Now</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- ---------------- SCREEN 7: PREPAREDNESS CHECKLIST (FR7) ---------------- -->
+            <section id="screenChecklist" class="p-4 flex-1 flex flex-col justify-between hidden">
+              <div>
+                <!-- Top Nav -->
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                  <button onclick="goToScreen('screenHome')" class="flex items-center space-x-1 text-slate-600 hover:text-slate-900 font-bold text-scale-sm">
+                    <span>❮</span> <span data-i18n="btnBack">Back</span>
+                  </button>
+                  <h3 class="font-extrabold text-slate-900 text-scale-base" data-i18n="titleChecklist">Emergency Go-Bag Kit</h3>
+                  <span class="text-xs font-black text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full" id="checklistHeaderPercent">75%</span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mt-3 bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                  <div id="checklistProgressBar" class="bg-purple-600 h-full w-[75%] transition-all duration-300"></div>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1" data-i18n="checklistSub">Pack these critical items in a waterproof bag before evacuating.</p>
+
+                <!-- Checklist Items -->
+                <div class="space-y-2 mt-3" id="checklistItemsContainer">
+                  <!-- Generated dynamically via JS -->
+                </div>
+              </div>
+
+              <!-- Quick Reset / Save -->
+              <div class="pt-2 pb-1 flex space-x-2">
+                <button onclick="resetChecklist()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl text-xs">
+                  Reset List
+                </button>
+                <button onclick="goToScreen('screenHome')" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs shadow">
+                  Save & Back
+                </button>
+              </div>
+            </section>
+
+            <!-- ---------------- SCREEN 8: SETTINGS & ACCESSIBILITY (FR9) ---------------- -->
+            <section id="screenSettings" class="p-4 flex-1 flex flex-col justify-between hidden">
+              <div>
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                  <button onclick="goToScreen('screenHome')" class="flex items-center space-x-1 text-slate-600 hover:text-slate-900 font-bold text-scale-sm">
+                    <span>❮</span> <span data-i18n="btnBack">Back</span>
+                  </button>
+                  <h3 class="font-extrabold text-slate-900 text-scale-base" data-i18n="navSettings">Settings</h3>
+                  <span>⚙️</span>
+                </div>
+
+                <div class="space-y-4 mt-3">
+                  <!-- Language -->
+                  <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2" data-i18n="selectLanguage">Language</label>
+                    <div class="grid grid-cols-3 gap-2">
+                      <button onclick="setLanguage('en')" class="p-2 border rounded-xl font-bold text-xs hover:border-blue-500">English</button>
+                      <button onclick="setLanguage('si')" class="p-2 border rounded-xl font-bold text-xs hover:border-blue-500">සිංහල</button>
+                      <button onclick="setLanguage('ta')" class="p-2 border rounded-xl font-bold text-xs hover:border-blue-500">தமிழ்</button>
+                    </div>
+                  </div>
+
+                  <!-- Text Size -->
+                  <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Display Text Size</label>
+                    <div class="grid grid-cols-3 gap-2">
+                      <button onclick="setFontScale(1)" class="p-2 border rounded-xl font-bold text-xs hover:bg-slate-50">Standard (1x)</button>
+                      <button onclick="setFontScale(1.18)" class="p-2 border rounded-xl font-bold text-xs hover:bg-slate-50">Large (1.2x)</button>
+                      <button onclick="setFontScale(1.35)" class="p-2 border rounded-xl font-bold text-xs hover:bg-slate-50">Max (1.4x)</button>
+                    </div>
+                  </div>
+
+                  <!-- Speech Narration -->
+                  <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                      <h5 class="font-bold text-slate-900 text-xs">Audio Voice Reader</h5>
+                      <p class="text-[11px] text-slate-500">Speaks alerts aloud for older adults</p>
+                    </div>
+                    <button onclick="testSpeech()" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-xl font-bold text-xs">Test Voice</button>
+                  </div>
+
+                  <!-- Privacy & Consent Notice (Section 4.2 Privacy) -->
+                  <div class="bg-slate-100 rounded-2xl p-3 text-[11px] text-slate-600 border border-slate-200">
+                    <p>🔒 <strong>HCI Privacy Guarantee:</strong> GPS location is sampled solely upon SOS trigger or Safe Check-in. No continuous tracking or commercial tracking data is retained.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-2 pb-1">
+                <button onclick="goToScreen('screenHome')" class="w-full bg-slate-900 text-white font-bold py-3 rounded-2xl text-xs">Close Settings</button>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- ================= MOBILE BOTTOM NAVIGATION DOCK (Consistency) ================= -->
+          <nav id="mobileBottomNav" class="bg-white border-t border-slate-200 py-2 px-3 flex justify-around items-center text-[10px] font-bold text-slate-500 z-20">
+            <button onclick="goToScreen('screenHome')" id="navBtnHome" class="flex flex-col items-center space-y-0.5 text-blue-600">
+              <span class="text-base">🏠</span>
+              <span data-i18n="tabHome">Alerts</span>
+            </button>
+            <button onclick="goToScreen('screenGuidance')" id="navBtnGuidance" class="flex flex-col items-center space-y-0.5 hover:text-slate-900">
+              <span class="text-base">📋</span>
+              <span data-i18n="tabGuide">Guide</span>
+            </button>
+            <button onclick="goToScreen('screenShelters')" id="navBtnShelters" class="flex flex-col items-center space-y-0.5 hover:text-slate-900">
+              <span class="text-base">🏛️</span>
+              <span data-i18n="tabShelters">Shelters</span>
+            </button>
+            <button onclick="goToScreen('screenChecklist')" id="navBtnChecklist" class="flex flex-col items-center space-y-0.5 hover:text-slate-900">
+              <span class="text-base">🎒</span>
+              <span data-i18n="tabKit">Go-Bag</span>
+            </button>
+            <button onclick="goToScreen('screenSettings')" id="navBtnSettings" class="flex flex-col items-center space-y-0.5 hover:text-slate-900">
+              <span class="text-base">⚙️</span>
+              <span data-i18n="tabSettings">Setup</span>
+            </button>
+          </nav>
+
+          <!-- Smartphone Bottom Indicator Bar -->
+          <div class="py-1 bg-white flex justify-center items-center">
+            <div class="w-28 h-1 bg-slate-300 rounded-full"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= VIEW 2: LOCAL OFFICER WEB DASHBOARD (Mr. Perera, 45) ================= -->
+    <div id="viewOfficer" class="w-full max-w-6xl hidden transition-all duration-300">
+      <div class="bg-slate-900 rounded-3xl p-5 md:p-7 shadow-2xl border border-slate-700 text-white">
+        
+        <!-- Officer Header -->
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-800">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+              <h2 class="text-2xl font-black tracking-tight">Disaster Coordination Incident Center</h2>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">
+              Officer: <strong>Mr. K. Perera (ID: OFF-KL-402)</strong> • Division: <strong>Kalutara & Western Lowlands</strong>
+            </p>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <!-- Simulated Push SOS from Mobile -->
+            <button onclick="triggerSimulatedSOS()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow flex items-center space-x-1.5 transition">
+              <span>⚡</span> <span>Simulate Citizen SOS</span>
+            </button>
+            <div class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-300">
+              Current Time: <span id="officerClock" class="font-mono font-bold text-white">09:41 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Triage Summary Metric Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 my-5">
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4">
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Active SOS Signals</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span class="text-3xl font-black text-red-500" id="officerStatActive">3</span>
+              <span class="text-xs text-red-400 bg-red-950/60 px-2 py-0.5 rounded border border-red-800">Needs Action</span>
+            </div>
+          </div>
+
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4">
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Dispatched Rescue Units</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span class="text-3xl font-black text-amber-400" id="officerStatDispatched">4</span>
+              <span class="text-xs text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800">En Route</span>
+            </div>
+          </div>
+
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4">
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Shelter Occupancy</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span class="text-3xl font-black text-blue-400">58%</span>
+              <span class="text-xs text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800">420 Capacity Left</span>
+            </div>
+          </div>
+
+          <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4">
+            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Resolved Rescues</span>
+            <div class="flex items-baseline justify-between mt-2">
+              <span class="text-3xl font-black text-emerald-400" id="officerStatResolved">12</span>
+              <span class="text-xs text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">Safe</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 bg-slate-800/50 p-3 rounded-2xl border border-slate-800">
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-slate-400 font-bold">Filter By Urgency:</span>
+            <button onclick="filterOfficerRequests('all')" class="officer-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white">All</button>
+            <button onclick="filterOfficerRequests('High')" class="officer-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Critical / High</button>
+            <button onclick="filterOfficerRequests('Moderate')" class="officer-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white">Moderate</button>
+          </div>
+          <div class="text-xs text-slate-400">
+            Auto-refresh: <strong class="text-emerald-400">Live (Synchronized with App)</strong>
+          </div>
+        </div>
+
+        <!-- Incoming Requests Table -->
+        <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/60">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-800 text-slate-400 uppercase tracking-wider font-extrabold text-[10px]">
+              <tr>
+                <th class="p-3.5">Ticket ID</th>
+                <th class="p-3.5">Citizen Name / Contact</th>
+                <th class="p-3.5">Location & Coordinates</th>
+                <th class="p-3.5">Emergency Nature</th>
+                <th class="p-3.5">Priority</th>
+                <th class="p-3.5">Time Logged</th>
+                <th class="p-3.5">Current Status</th>
+                <th class="p-3.5 text-right">Officer Action</th>
+              </tr>
+            </thead>
+            <tbody id="officerRequestsTableBody" class="divide-y divide-slate-800">
+              <!-- Dynamically populated from JavaScript data store -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Officer Quick Fallback & DMC Hotlines -->
+        <div class="mt-5 p-3.5 bg-slate-800/50 rounded-2xl border border-slate-700/60 flex flex-wrap items-center justify-between text-xs text-slate-400">
+          <div class="flex items-center space-x-2">
+            <span>🛡️</span>
+            <span>Connected to DMC Emergency Broadcast Relay Channel #7 (Western Province)</span>
+          </div>
+          <div class="flex items-center space-x-4">
+            <span class="hover:text-white cursor-pointer font-bold">📡 Radio Ch. 144.5 MHz</span>
+            <span class="hover:text-white cursor-pointer font-bold">🚑 Sri Lanka Red Cross Dispatch</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= JAVASCRIPT LOGIC ENGINE ================= -->
+  <script>
+    /* -------------------------------------------------------------
+       STATE MANAGEMENT & LOCALIZATION
+       ------------------------------------------------------------- */
+    const APP_STATE = {
+      role: 'resident', // 'resident' | 'officer'
+      lang: 'en', // 'en' | 'si' | 'ta'
+      fontScale: 1,
+      highContrast: false,
+      isOffline: false,
+      currentDistrict: 'Kalutara',
+      currentHazard: 'flood',
+      guidanceMode: 'evacuate',
+      activeSosCountdown: null,
+      sosRemainingSeconds: 5,
+      activeTicketId: null,
+      requests: [
+        {
+          id: '#EM-8427',
+          name: 'Kamala Fernando (Age 68)',
+          contact: '071-4829103',
+          location: 'Putupaula, Kalu River bank',
+          latLong: '6.5912° N, 79.9710° E',
+          issue: 'Trapped on roof, water rising, reduced mobility',
+          priority: 'High',
+          time: '12 mins ago',
+          status: 'Dispatched', // 'Pending' | 'Dispatched' | 'Resolved'
+        },
+        {
+          id: '#EM-8428',
+          name: 'Nuwan Perera (Family of 4)',
+          contact: '077-8392019',
+          location: 'Station Road, Kalutara North',
+          latLong: '6.5870° N, 79.9630° E',
+          issue: 'Elderly person needs stretcher transport',
+          priority: 'High',
+          time: '8 mins ago',
+          status: 'Pending',
+        },
+        {
+          id: '#EM-8425',
+          name: 'Rohan Silva',
+          contact: '075-1928374',
+          location: 'Nagoda Hospital Road',
+          latLong: '6.5802° N, 79.9810° E',
+          issue: 'Tree fell across road, vehicle trapped',
+          priority: 'Moderate',
+          time: '24 mins ago',
+          status: 'Resolved',
+        }
+      ],
+      checklist: [
+        { id: 1, name: '3-Day Bottled Clean Drinking Water (4 Litres)', checked: true, icon: '💧' },
+        { id: 2, name: 'Dry Rations & High-Energy Biscuits / Canned Food', checked: true, icon: '🥫' },
+        { id: 3, name: 'Prescription Medicines & First Aid Kit', checked: true, icon: '💊' },
+        { id: 4, name: 'NIC, Deeds & Important Documents in Waterproof Pouch', checked: true, icon: '📄' },
+        { id: 5, name: 'Battery Flashlight & Spare Batteries', checked: true, icon: '🔦' },
+        { id: 6, name: 'High-Capacity Mobile Power Bank & Charging Cable', checked: true, icon: '🔋' },
+        { id: 7, name: 'Loud Whistle (for signaling emergency rescue boats)', checked: false, icon: '📯' },
+        { id: 8, name: 'Dry Spare Clothes & Lightweight Rain Poncho', checked: false, icon: '🧥' },
+      ]
+    };
+
+    /* -------------------------------------------------------------
+       TRANSLATIONS (ENGLISH, SINHALA, TAMIL)
+       ------------------------------------------------------------- */
+    const I18N = {
+      en: {
+        welcomeTitle: "DisasterAid Sri Lanka",
+        welcomeSubtitle: "Immediate, accessible disaster alerts and emergency assistance.",
+        selectLanguage: "Choose Preferred Language",
+        homeDistrict: "Your District / Area",
+        accessibilityPref: "Accessibility Options",
+        voiceNarration: "Voice Audio Alerts",
+        largeTextSetup: "Large Readable Text",
+        btnContinue: "Go to Dashboard",
+        offlineBanner: "Offline Mode: Showing cached shelter & safety data",
+        btnSpeak: "Listen",
+        badgeSeverity: "🔴 RED ALERT: MAJOR FLOOD",
+        alertTitle: "Flash Flood Warning for Kalu River Basin",
+        alertDesc: "Water levels at Putupaula station exceeded Major Flood Level (12.2m). Rapid inundation expected in low-lying riverside areas.",
+        nextActionLabel: "RECOMMENDED NEXT SAFE ACTION:",
+        nextActionText: "EVACUATE IMMEDIATELY to designated higher ground or Kalutara North Community Center. Avoid all riverbank roads.",
+        btnSosTitle: "REQUEST EMERGENCY HELP",
+        btnSosSub: "One-tap SOS dispatch • 5s cancel window",
+        navGuidance: "Safety Guide",
+        navGuidanceSub: "What to do right now",
+        navShelters: "Safe Shelters",
+        navSheltersSub: "Nearby evacuation points",
+        navCheckin: '"I Am Safe"',
+        navCheckinSub: "Inform family & friends",
+        navChecklist: "Go-Bag Kit",
+        btnBack: "Back",
+        titleSafetyGuide: "Hazard Safety Guide",
+        findNearestShelter: "Find Safe Shelter on Map",
+        titleShelters: "Nearby Safe Shelters",
+        shelterCachedNotice: "Offline Ready:",
+        sosPreparingTitle: "EMERGENCY SOS INITIATED",
+        sosCountdownNotice: "Sending Your Distress Signal & Location In:",
+        secondsLeft: "SECONDS",
+        sosGpsNotice: "📍 Collecting accurate GPS coordinates:",
+        btnCancelSos: "✕ CANCEL REQUEST (I'M OK)",
+        cancelHelpText: "Tapping Cancel immediately stops signal broadcast",
+        sosConfirmedTitle: "Distress Signal Logged",
+        sosConfirmedSub: "Your emergency request has been transmitted to local coordinators.",
+        fallbackHeading: "Important Emergency Notice:",
+        fallbackText: "This prototype logs your request with the simulated disaster network. If life is in immediate danger, call national rescue hotlines directly:",
+        btnReturnDashboard: "Return to Main Screen",
+        titleSafeCheckin: '"I Am Safe" Check-In',
+        checkinExplainer: "Quickly notify your family and contacts with one tap so they know you are out of danger without jamming network calls.",
+        yourStatus: "Select Current Status",
+        recipients: "Simulated Recipients (3)",
+        btnBroadcastSafe: 'Broadcast "I Am Safe" Now',
+        titleChecklist: "Emergency Go-Bag Kit",
+        checklistSub: "Pack these critical items in a waterproof bag before evacuating.",
+        navSettings: "Settings",
+        tabHome: "Alerts",
+        tabGuide: "Guide",
+        tabShelters: "Shelters",
+        tabKit: "Go-Bag",
+        tabSettings: "Setup"
+      },
+      si: {
+        welcomeTitle: "DisasterAid ශ්‍රී ලංකා",
+        welcomeSubtitle: "ක්ෂණික, සරල ආපදා අනතුරු ඇඟවීම් සහ හදිසි සහන පද්ධතිය.",
+        selectLanguage: "භාෂාව තෝරන්න",
+        homeDistrict: "ඔබගේ දිස්ත්‍රික්කය / ප්‍රදේශය",
+        accessibilityPref: "ප්‍රවේශ්‍යතා සැකසුම් (Accessibility)",
+        voiceNarration: "හඬින් අනතුරු ඇඟවීම (Voice Alerts)",
+        largeTextSetup: "විශාල අකුරු (Large Text)",
+        btnContinue: "ප්‍රධාන තිරයට පිවිසෙන්න",
+        offlineBanner: "නොබැඳි මාදිලිය: සුරැකි (Cached) ආරක්ෂිත ස්ථාන තොරතුරු පෙන්වයි",
+        btnSpeak: "හඬින් අසන්න",
+        badgeSeverity: "🔴 රතු නිවේදනය: මහා ගංවතුර අවදානම",
+        alertTitle: "කළු ගඟ ද්‍රෝණිය සඳහා හදිසි ගංවතුර අනතුරු ඇඟවීම",
+        alertDesc: "පුටුපවුල ජල මිනුම් ස්ථානයේ ජල මට්ටම මහා ගංවතුර මට්ටම (12.2m) ඉක්මවා ඇත. පහත් බිම් ප්‍රදේශ වලට ක්ෂණික ගංවතුර අවදානමක් පවතී.",
+        nextActionLabel: "ඊළඟ ආරක්ෂිත පියවර:",
+        nextActionText: "වහාම උස් බිම් හෝ කළුතර උතුර ප්‍රජා ශාලාව වෙත ඉවත් වන්න. ගං ඉවුරු ආසන්න මාර්ග භාවිතයෙන් වළකින්න.",
+        btnSosTitle: "හදිසි උදව් ඉල්ලන්න (SOS)",
+        btnSosSub: "එක් ක්ලික් එකකින් සහන ඉල්ලීම • තත් 5ක් තුළ අවලංගු කළ හැක",
+        navGuidance: "ආරක්ෂක උපදෙස්",
+        navGuidanceSub: "දැන් කළ යුතු දේ",
+        navShelters: "ආරක්ෂිත කඳවුරු",
+        navSheltersSub: "ළඟම සහන මධ්‍යස්ථාන",
+        navCheckin: '"මම ආරක්ෂිතයි"',
+        navCheckinSub: "පවුලේ අයට දන්වන්න",
+        navChecklist: "හදිසි බෑගය",
+        btnBack: "ආපසු",
+        titleSafetyGuide: "ආපදා ආරක්ෂක උපදෙස්",
+        findNearestShelter: "ළඟම ආරක්ෂිත ස්ථානය බලන්න",
+        titleShelters: "ළඟම ආරක්ෂිත කඳවුරු",
+        shelterCachedNotice: "නොබැඳිව ක්‍රියා කරයි:",
+        sosPreparingTitle: "හදිසි SOS ඉල්ලීම ක්‍රියාත්මකයි",
+        sosCountdownNotice: "ඔබගේ ස්ථානය සහ විස්තර යවමින් පවතී:",
+        secondsLeft: "තත්පර",
+        sosGpsNotice: "📍 නිවැරදි GPS ස්ථානය ලබා ගනිමින් පවතී:",
+        btnCancelSos: "✕ අවලංගු කරන්න (මම ආරක්ෂිතයි)",
+        cancelHelpText: "අවලංගු කරන්න ක්ලික් කළ වහාම පණිවිඩය නැවත නවතී",
+        sosConfirmedTitle: "උදව් ඉල්ලීම සාර්ථකව සටහන් විය",
+        sosConfirmedSub: "ඔබගේ පණිවිඩය ප්‍රාදේශීය ආපදා නිලධාරීන්ට යොමු කර ඇත.",
+        fallbackHeading: "වැදගත් හදිසි දැනුම්දීම:",
+        fallbackText: "දුරකථන ක්‍රියාත්මක නම් වහාම ජාතික හදිසි අංක අමතන්න:",
+        btnReturnDashboard: "ප්‍රධාන තිරයට යන්න",
+        titleSafeCheckin: '"මම ආරක්ෂිතයි" දැනුම්දීම',
+        checkinExplainer: "දුරකථන මාර්ග තදබදයකින් තොරව පවුලේ අයට ඔබ ආරක්ෂිත බව එක් ටැප් එකකින් දැනුම් දෙන්න.",
+        yourStatus: "වත්මන් තත්වය තෝරන්න",
+        recipients: "ලැබෙන්නන් (3 දෙනෙක්)",
+        btnBroadcastSafe: '"මම ආරක්ෂිතයි" පණිවිඩය යවන්න',
+        titleChecklist: "හදිසි ආපදා ගමන් මල්ල",
+        checklistSub: "ඉවත් වීමට පෙර මෙම අත්‍යවශ්‍ය ද්‍රව්‍ය සූදානම් කරගන්න.",
+        navSettings: "සැකසුම්",
+        tabHome: "අනතුරු ඇඟවීම්",
+        tabGuide: "උපදෙස්",
+        tabShelters: "කඳවුරු",
+        tabKit: "ගමන් මල්ල",
+        tabSettings: "සැකසුම්"
+      },
+      ta: {
+        welcomeTitle: "DisasterAid இலங்கை",
+        welcomeSubtitle: "உடனடி, அணுகக்கூடிய பேரிடர் எச்சரிக்கைகள் மற்றும் அவசர உதவி.",
+        selectLanguage: "மொழியைத் தேர்ந்தெடுக்கவும்",
+        homeDistrict: "உங்கள் மாவட்டம் / பகுதி",
+        accessibilityPref: "அணுகல்தன்மை விருப்பங்கள்",
+        voiceNarration: "குரல் எச்சரிக்கைகள்",
+        largeTextSetup: "பெரிய உரை",
+        btnContinue: "டாஷ்போர்டுக்குச் செல்லவும்",
+        offlineBanner: "ஆஃப்லைன் பயன்முறை: பாதுகாக்கப்பட்ட தரவு காட்டப்படுகிறது",
+        btnSpeak: "கேளுங்கள்",
+        badgeSeverity: "🔴 சிவப்பு எச்சரிக்கை: பெரும் வெள்ளம்",
+        alertTitle: "களு கங்கை வடிநிலத்திற்கு வெள்ள அபாய எச்சரிக்கை",
+        alertDesc: "புதுபவுல நிலையத்தில் நீர்மட்டம் பெரும் வெள்ள எல்லையைத் தாண்டியுள்ளது. தாழ்வான பகுதிகளில் உடனடியாக வெள்ளப்பெருக்கு ஏற்படலாம்.",
+        nextActionLabel: "பரிந்துரைக்கப்பட்ட அடுத்த நடவடிக்கை:",
+        nextActionText: "உடனடியாக உயரமான இடங்களுக்கு அல்லது களுத்துறை வடக்கு மண்டபத்திற்கு வெளியேறவும்.",
+        btnSosTitle: "அவசர உதவி கோருங்கள் (SOS)",
+        btnSosSub: "ஒரு முறை தட்டினால் உதவி • 5 வினாடிகளில் ரத்து செய்யலாம்",
+        navGuidance: "பாதுகாப்பு வழிகாட்டி",
+        navGuidanceSub: "இப்போது செய்ய வேண்டியவை",
+        navShelters: "பாதுகாப்பான முகாம்கள்",
+        navSheltersSub: "அருகிலுள்ள தங்குமிடங்கள்",
+        navCheckin: '"நான் பாதுகாப்பாக உள்ளேன்"',
+        navCheckinSub: "குடும்பத்திற்கு தெரிவிக்கவும்",
+        navChecklist: "அவசர பை",
+        btnBack: "பின்செல்ல",
+        titleSafetyGuide: "பாதுகாப்பு வழிகாட்டுதல்",
+        findNearestShelter: "தங்குமிடத்தைக் கண்டறியவும்",
+        titleShelters: "அருகிலுள்ள தங்குமிடங்கள்",
+        shelterCachedNotice: "ஆஃப்லைனில் கிடைக்கும்:",
+        sosPreparingTitle: "அவசர SOS தொடங்கப்பட்டது",
+        sosCountdownNotice: "உங்கள் சமிக்ஞை அனுப்பப்படுகிறது:",
+        secondsLeft: "வினாடிகள்",
+        sosGpsNotice: "📍 GPS இருப்பிடம் பெறப்படுகிறது:",
+        btnCancelSos: "✕ ரத்துசெய் (நான் நலமாக உள்ளேன்)",
+        cancelHelpText: "ரத்துசெய்தால் தகவல் அனுப்பப்படாது",
+        sosConfirmedTitle: "உதவி கோரிக்கை பதிவு செய்யப்பட்டது",
+        sosConfirmedSub: "உங்கள் கோரிக்கை அதிகாரிகளுக்கு அனுப்பப்பட்டுள்ளது.",
+        fallbackHeading: "முக்கிய அவசர அறிவிப்பு:",
+        fallbackText: "ஆபத்து அதிகமாக இருந்தால் தேசிய அவசர எண்களை அழைக்கவும்:",
+        btnReturnDashboard: "முதன்மைத் திரைக்குச் செல்க",
+        titleSafeCheckin: '"நான் பாதுகாப்பாக உள்ளேன்" பதிவு',
+        checkinExplainer: "தொலைபேசி அழைப்புகள் நெரிசலின்றி நீங்கள் பாதுகாப்பாக இருப்பதை குடும்பத்தினருக்கு தெரிவிக்கவும்.",
+        yourStatus: "தற்போதைய நிலையைத் தேர்ந்தெடுக்கவும்",
+        recipients: "பெறுநர்கள் (3 நபர்கள்)",
+        btnBroadcastSafe: 'பாதுகாப்பு தகவலை அனுப்புங்கள்',
+        titleChecklist: "அவசர உதவிப் பை",
+        checklistSub: "வெளியேறும் முன் இந்த அத்தியாவசிய பொருட்களை தயாராக வைக்கவும்.",
+        navSettings: "அமைப்புகள்",
+        tabHome: "எச்சரிக்கைகள்",
+        tabGuide: "வழிகாட்டி",
+        tabShelters: "முகாம்கள்",
+        tabKit: "உதவிப் பை",
+        tabSettings: "அமைப்புகள்"
+      }
+    };
+
+    /* -------------------------------------------------------------
+       INITIALIZATION
+       ------------------------------------------------------------- */
+    window.addEventListener('DOMContentLoaded', () => {
+      renderChecklist();
+      renderGuidanceSteps();
+      renderOfficerTable();
+      applyLanguage(APP_STATE.lang);
+      startLiveClocks();
+    });
+
+    function startLiveClocks() {
+      setInterval(() => {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const clockEl = document.getElementById('mobileClock');
+        const officerClockEl = document.getElementById('officerClock');
+        if (clockEl) clockEl.innerText = timeStr;
+        if (officerClockEl) officerClockEl.innerText = timeStr;
+      }, 1000);
+    }
+
+    /* -------------------------------------------------------------
+       NAVIGATION ENGINE (Single Page Screen Transitions)
+       ------------------------------------------------------------- */
+    function goToScreen(screenId) {
+      const screens = [
+        'screenWelcome',
+        'screenHome',
+        'screenGuidance',
+        'screenShelters',
+        'screenSosCountdown',
+        'screenSosConfirmed',
+        'screenCheckin',
+        'screenChecklist',
+        'screenSettings'
+      ];
+      screens.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.remove('hidden');
+      }
+
+      // Update bottom nav highlighting
+      updateNavHighlight(screenId);
+    }
+
+    function updateNavHighlight(screenId) {
+      const navMap = {
+        'screenHome': 'navBtnHome',
+        'screenGuidance': 'navBtnGuidance',
+        'screenShelters': 'navBtnShelters',
+        'screenChecklist': 'navBtnChecklist',
+        'screenSettings': 'navBtnSettings'
+      };
+
+      ['navBtnHome', 'navBtnGuidance', 'navBtnShelters', 'navBtnChecklist', 'navBtnSettings'].forEach(btnId => {
+        const b = document.getElementById(btnId);
+        if (b) {
+          b.classList.remove('text-blue-600');
+          b.classList.add('text-slate-500');
+        }
+      });
+
+      if (navMap[screenId]) {
+        const activeBtn = document.getElementById(navMap[screenId]);
+        if (activeBtn) {
+          activeBtn.classList.remove('text-slate-500');
+          activeBtn.classList.add('text-blue-600');
+        }
+      }
+    }
+
+    /* -------------------------------------------------------------
+       ROLE SWITCHER (Resident Mobile vs Officer Dashboard)
+       ------------------------------------------------------------- */
+    function setRole(role) {
+      APP_STATE.role = role;
+      const vResident = document.getElementById('viewResident');
+      const vOfficer = document.getElementById('viewOfficer');
+      const btnResident = document.getElementById('btnRoleResident');
+      const btnOfficer = document.getElementById('btnRoleOfficer');
+
+      if (role === 'resident') {
+        vResident.classList.remove('hidden');
+        vOfficer.classList.add('hidden');
+        btnResident.classList.add('bg-blue-600', 'text-white', 'shadow');
+        btnResident.classList.remove('text-slate-300');
+        btnOfficer.classList.remove('bg-blue-600', 'text-white', 'shadow');
+        btnOfficer.classList.add('text-slate-300');
+      } else {
+        vResident.classList.add('hidden');
+        vOfficer.classList.remove('hidden');
+        btnOfficer.classList.add('bg-blue-600', 'text-white', 'shadow');
+        btnOfficer.classList.remove('text-slate-300');
+        btnResident.classList.remove('bg-blue-600', 'text-white', 'shadow');
+        btnResident.classList.add('text-slate-300');
+        renderOfficerTable();
+      }
+    }
+
+    /* -------------------------------------------------------------
+       LANGUAGE SWITCHER
+       ------------------------------------------------------------- */
+    function setLanguage(lang) {
+      APP_STATE.lang = lang;
+      ['langEn', 'langSi', 'langTa'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.classList.remove('bg-slate-700', 'text-white');
+          btn.classList.add('text-slate-300');
+        }
+      });
+      const activeBtn = document.getElementById('lang' + lang.charAt(0).toUpperCase() + lang.slice(1));
+      if (activeBtn) {
+        activeBtn.classList.add('bg-slate-700', 'text-white');
+      }
+      applyLanguage(lang);
+      renderGuidanceSteps();
+    }
+
+    function applyLanguage(lang) {
+      const strings = I18N[lang] || I18N.en;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (strings[key]) {
+          el.innerText = strings[key];
+        }
+      });
+    }
+
+    /* -------------------------------------------------------------
+       ACCESSIBILITY CONTROLLERS (Kamala Persona)
+       ------------------------------------------------------------- */
+    function setFontScale(scale) {
+      APP_STATE.fontScale = scale;
+      document.documentElement.style.setProperty('--font-scale', scale);
+
+      ['fontSm', 'fontMd', 'fontLg'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) {
+          b.classList.remove('bg-slate-700', 'text-white');
+          b.classList.add('text-slate-300');
+        }
+      });
+
+      if (scale === 1) document.getElementById('fontSm')?.classList.add('bg-slate-700', 'text-white');
+      else if (scale < 1.25) document.getElementById('fontMd')?.classList.add('bg-slate-700', 'text-white');
+      else document.getElementById('fontLg')?.classList.add('bg-slate-700', 'text-white');
+    }
+
+    function toggleHighContrast() {
+      APP_STATE.highContrast = !APP_STATE.highContrast;
+      const body = document.body;
+      const btn = document.getElementById('btnContrast');
+      if (APP_STATE.highContrast) {
+        body.classList.add('high-contrast');
+        btn.classList.add('bg-yellow-400', 'text-black');
+        btn.classList.remove('bg-slate-900', 'text-yellow-400');
+      } else {
+        body.classList.remove('high-contrast');
+        btn.classList.remove('bg-yellow-400', 'text-black');
+        btn.classList.add('bg-slate-900', 'text-yellow-400');
+      }
+    }
+
+    function toggleOfflineSim() {
+      APP_STATE.isOffline = !APP_STATE.isOffline;
+      const banner = document.getElementById('mobileOfflineBanner');
+      const netBtn = document.getElementById('btnNetwork');
+      const netText = document.getElementById('netStatusText');
+      const sigEl = document.getElementById('mobileSignal');
+
+      if (APP_STATE.isOffline) {
+        banner.classList.remove('hidden');
+        netBtn.classList.replace('bg-emerald-950', 'bg-amber-950');
+        netBtn.classList.replace('text-emerald-400', 'text-amber-400');
+        netBtn.classList.replace('border-emerald-700/60', 'border-amber-700/60');
+        netText.innerText = '📴 Offline Sim';
+        sigEl.innerText = 'Offline';
+        sigEl.className = 'text-amber-600 font-bold';
+      } else {
+        banner.classList.add('hidden');
+        netBtn.classList.replace('bg-amber-950', 'bg-emerald-950');
+        netBtn.classList.replace('text-amber-400', 'text-emerald-400');
+        netBtn.classList.replace('border-amber-700/60', 'border-emerald-700/60');
+        netText.innerText = '📶 Online';
+        sigEl.innerText = '5G';
+        sigEl.className = 'text-emerald-600 font-bold';
+      }
+    }
+
+    function updateDistrict(dist) {
+      APP_STATE.currentDistrict = dist;
+      const disp = document.getElementById('homeLocationDisplay');
+      if (disp) disp.innerText = dist + ' District';
+    }
+
+    /* -------------------------------------------------------------
+       SPEECH NARRATOR (Web Speech API)
+       ------------------------------------------------------------- */
+    function speakCurrentAlert() {
+      if (!('speechSynthesis' in window)) {
+        alert("Speech synthesis is not supported in this browser.");
+        return;
+      }
+      window.speechSynthesis.cancel();
+      let text = "Red Alert: Major Flood Warning for Kalu River Basin. Evacuate immediately to designated higher ground or Kalutara North Community Center. Avoid all riverbank roads.";
+      if (APP_STATE.lang === 'si') {
+        text = "කළු ගඟ ද්‍රෝණිය සඳහා හදිසි මහා ගංවතුර අනතුරු ඇඟවීමකි. වහාම උස් බිම් හෝ කළුතර උතුර ප්‍රජා ශාලාව වෙත ඉවත් වන්න.";
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function speakGuidance() {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const text = "Safety Instructions: Move family and elderly to higher elevation immediately. Turn off main electricity breakers and gas supplies. Carry your waterproof emergency go-bag.";
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function testSpeech() {
+      speakCurrentAlert();
+    }
+
+    /* -------------------------------------------------------------
+       AUDIO BEEP SIMULATOR (Web Audio API for SOS countdown)
+       ------------------------------------------------------------- */
+    function playBeep(freq = 800, duration = 0.15) {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // Fallback gracefully if audio blocked
+      }
+    }
+
+    /* -------------------------------------------------------------
+       SOS WORKFLOW ENGINE (FR5, Shneiderman: Error Prevention)
+       ------------------------------------------------------------- */
+    function startSosWorkflow() {
+      goToScreen('screenSosCountdown');
+      APP_STATE.sosRemainingSeconds = 5;
+      const timerEl = document.getElementById('sosCountdownTimer');
+      if (timerEl) timerEl.innerText = '5';
+
+      playBeep(900, 0.2);
+
+      if (APP_STATE.activeSosCountdown) {
+        clearInterval(APP_STATE.activeSosCountdown);
+      }
+
+      APP_STATE.activeSosCountdown = setInterval(() => {
+        APP_STATE.sosRemainingSeconds -= 1;
+        if (timerEl) timerEl.innerText = APP_STATE.sosRemainingSeconds;
+        playBeep(850 + (5 - APP_STATE.sosRemainingSeconds) * 100, 0.18);
+
+        if (APP_STATE.sosRemainingSeconds <= 0) {
+          clearInterval(APP_STATE.activeSosCountdown);
+          APP_STATE.activeSosCountdown = null;
+          submitSosRequest();
+        }
+      }, 1000);
+    }
+
+    function cancelSosWorkflow() {
+      if (APP_STATE.activeSosCountdown) {
+        clearInterval(APP_STATE.activeSosCountdown);
+        APP_STATE.activeSosCountdown = null;
+      }
+      playBeep(400, 0.2);
+      goToScreen('screenHome');
+      showToast("✓ SOS Cancelled - No false alarm sent.");
+    }
+
+    function submitSosRequest() {
+      playBeep(1200, 0.4);
+      const ticketNum = Math.floor(1000 + Math.random() * 9000);
+      APP_STATE.activeTicketId = `#EM-${ticketNum}`;
+      
+      const ticketEl = document.getElementById('sosTicketId');
+      if (ticketEl) ticketEl.innerText = APP_STATE.activeTicketId;
+
+      // Add to Officer Requests queue in real-time
+      const newRequest = {
+        id: APP_STATE.activeTicketId,
+        name: 'Citizen Mobile App User',
+        contact: '077-1234567',
+        location: APP_STATE.currentDistrict + ' (Current GPS)',
+        latLong: '6.5854° N, 79.9607° E',
+        issue: 'Flood rescue / evacuation transport requested',
+        priority: 'High',
+        time: 'Just now',
+        status: 'Pending'
+      };
+      APP_STATE.requests.unshift(newRequest);
+      renderOfficerTable();
+
+      // Update badge in header
+      const badge = document.getElementById('officerBadgeCount');
+      if (badge) badge.innerText = APP_STATE.requests.filter(r => r.status === 'Pending').length;
+
+      goToScreen('screenSosConfirmed');
+    }
+
+    /* -------------------------------------------------------------
+       HAZARD GUIDANCE DATA & RENDERER
+       ------------------------------------------------------------- */
+    const GUIDANCE_DATA = {
+      flood: {
+        evacuate: [
+          { icon: '🏃', title: 'Move to Elevated Shelter', desc: 'Immediately head to designated high ground or community centers. Never walk through flood water over 15cm.' },
+          { icon: '🔌', title: 'Disconnect Electricity & Gas', desc: 'Switch off the main breaker and disconnect LPG gas cylinders before floodwaters enter.' },
+          { icon: '🎒', title: 'Grab Pre-packed Go-Bag', desc: 'Take your waterproof emergency bag containing drinking water, medications, and IDs.' },
+          { icon: '🚫', title: 'Avoid Fast Flowing Canals', desc: 'Stay far away from Kalu River embankments and culverts which can collapse without warning.' }
+        ],
+        shelter: [
+          { icon: '🏢', title: 'Ascend to Second Floor', desc: 'If trapped and unable to evacuate, move family and pets to the highest floor or sturdy roof.' },
+          { icon: '📻', title: 'Keep Mobile Battery Conserved', desc: 'Dim phone screen brightness, keep text notifications active, and monitor 117 DMC updates.' },
+          { icon: '📯', title: 'Signal Rescue Crews', desc: 'Hang a bright cloth or use a whistle from a roof window to alert rescue boat operators.' }
+        ]
+      },
+      landslide: {
+        evacuate: [
+          { icon: '🏃', title: 'Evacuate Slope Foot Immediately', desc: 'If sudden muddy runoff, cracks in masonry, or falling debris appear, evacuate perpendicular to the slide path.' },
+          { icon: '👂', title: 'Listen for Rumbling Sounds', desc: 'Unusual cracking of trees or boulders grinding indicates impending hill slope failure.' },
+          { icon: '🚫', title: 'Do Not Cross Active Slips', desc: 'Never attempt to drive or walk across muddy debris on hillside roads.' }
+        ],
+        shelter: [
+          { icon: '🛡️', title: 'Take Refuge in Stable Structure', desc: 'If evacuation is cut off, curl into a tight ball under sturdy furniture and protect your head.' }
+        ]
+      },
+      cyclone: {
+        evacuate: [
+          { icon: '🏚️', title: 'Leave Temporary Roof Structures', desc: 'Move away from unreinforced tin-roof houses to masonry shelters before gale-force winds hit.' }
+        ],
+        shelter: [
+          { icon: '🪟', title: 'Board Up Windows', desc: 'Stay in the center of the house away from glass windows and loose flying roof sheets.' }
+        ]
+      },
+      tsunami: {
+        evacuate: [
+          { icon: '🏃', title: 'Run at Least 2km Inland or 30m High', desc: 'If sea water recedes rapidly or an earthquake is felt, flee immediately without waiting for sirens.' }
+        ],
+        shelter: [
+          { icon: '🏢', title: 'Multi-Storey Concrete Building', desc: 'Climb to the 3rd floor or higher of an engineered concrete hotel or building if high ground is too far.' }
+        ]
+      },
+      earthquake: {
+        evacuate: [
+          { icon: '🌳', title: 'Move to Open Area After Shaking Stops', desc: 'Evacuate damaged buildings carefully; beware of downed electrical power lines.' }
+        ],
+        shelter: [
+          { icon: '🪑', title: 'Drop, Cover, and Hold On', desc: 'Drop to knees, take cover under a heavy desk, and hold on until severe shaking ceases.' }
+        ]
+      }
+    };
+
+    function selectHazardGuidance(hazard) {
+      APP_STATE.currentHazard = hazard;
+      document.querySelectorAll('.hazard-tab').forEach(t => {
+        t.className = 'hazard-tab px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap bg-slate-200 text-slate-700 hover:bg-slate-300';
+      });
+      const activeTabId = 'tabHazard' + hazard.charAt(0).toUpperCase() + hazard.slice(1);
+      const activeEl = document.getElementById(activeTabId);
+      if (activeEl) {
+        activeEl.className = 'hazard-tab px-3 py-1.5 rounded-xl font-extrabold text-xs whitespace-nowrap bg-blue-600 text-white shadow';
+      }
+      renderGuidanceSteps();
+    }
+
+    function setGuidanceMode(mode) {
+      APP_STATE.guidanceMode = mode;
+      const btnEvac = document.getElementById('btnGuideEvacuate');
+      const btnShel = document.getElementById('btnGuideShelter');
+      if (mode === 'evacuate') {
+        btnEvac.className = 'py-2 text-xs font-black rounded-lg bg-red-600 text-white shadow';
+        btnShel.className = 'py-2 text-xs font-bold rounded-lg text-slate-700 hover:text-slate-900';
+      } else {
+        btnShel.className = 'py-2 text-xs font-black rounded-lg bg-blue-600 text-white shadow';
+        btnEvac.className = 'py-2 text-xs font-bold rounded-lg text-slate-700 hover:text-slate-900';
+      }
+      renderGuidanceSteps();
+    }
+
+    function renderGuidanceSteps() {
+      const container = document.getElementById('guidanceStepsList');
+      if (!container) return;
+      const hazardData = GUIDANCE_DATA[APP_STATE.currentHazard] || GUIDANCE_DATA.flood;
+      const steps = hazardData[APP_STATE.guidanceMode] || hazardData.evacuate;
+
+      container.innerHTML = steps.map((item, idx) => `
+        <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-start space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-xl shrink-0">
+            ${item.icon}
+          </div>
+          <div>
+            <h5 class="text-scale-sm font-extrabold text-slate-900">${idx + 1}. ${item.title}</h5>
+            <p class="text-[11px] text-slate-600 mt-0.5 leading-relaxed">${item.desc}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* -------------------------------------------------------------
+       SHELTERS & ROUTES MODAL
+       ------------------------------------------------------------- */
+    function showRouteDetails(shelterName, dist) {
+      const modal = document.getElementById('modalRouteOverlay');
+      const title = document.getElementById('modalRouteTitle');
+      if (title) title.innerText = `Route to ${shelterName} (${dist})`;
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeRouteDetails() {
+      const modal = document.getElementById('modalRouteOverlay');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    /* -------------------------------------------------------------
+       SAFE CHECK-IN ENGINE (FR6)
+       ------------------------------------------------------------- */
+    function selectCheckinStatus(btn, text) {
+      document.querySelectorAll('.checkin-btn').forEach(b => {
+        b.className = 'checkin-btn w-full bg-white border border-slate-200 rounded-2xl p-3 text-left flex items-center justify-between text-xs font-bold text-slate-800';
+        const spanCheck = b.querySelector('span:last-child');
+        if (spanCheck) {
+          spanCheck.innerText = '○';
+          spanCheck.className = 'text-slate-300';
+        }
+      });
+      btn.className = 'checkin-btn w-full bg-emerald-50 border-2 border-emerald-500 rounded-2xl p-3 text-left flex items-center justify-between text-xs font-bold text-slate-800';
+      const indicator = btn.querySelector('span:last-child');
+      if (indicator) {
+        indicator.innerText = '✓ Selected';
+        indicator.className = 'text-emerald-600 font-bold';
+      }
+    }
+
+    function sendSafeCheckin() {
+      const btn = document.getElementById('btnSendCheckin');
+      const toast = document.getElementById('checkinSuccessToast');
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span> <span>Transmitting via Low-Bandwidth SMS...</span>';
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<span>📨</span> <span>Broadcast "I Am Safe" Now</span>';
+        if (toast) {
+          toast.classList.remove('hidden');
+          setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+      }, 900);
+    }
+
+    /* -------------------------------------------------------------
+       PREPAREDNESS CHECKLIST ENGINE (FR7)
+       ------------------------------------------------------------- */
+    function renderChecklist() {
+      const container = document.getElementById('checklistItemsContainer');
+      if (!container) return;
+
+      container.innerHTML = APP_STATE.checklist.map(item => `
+        <label class="flex items-center justify-between bg-white border border-slate-200 rounded-2xl p-3 shadow-sm cursor-pointer hover:bg-slate-50">
+          <div class="flex items-center space-x-3">
+            <span class="text-xl">${item.icon}</span>
+            <span class="text-scale-xs font-bold ${item.checked ? 'line-through text-slate-400' : 'text-slate-800'}">
+              ${item.name}
+            </span>
+          </div>
+          <input type="checkbox" onchange="toggleChecklistItem(${item.id})" ${item.checked ? 'checked' : ''} class="w-5 h-5 accent-purple-600 rounded">
+        </label>
+      `).join('');
+
+      updateChecklistProgress();
+    }
+
+    function toggleChecklistItem(id) {
+      const it = APP_STATE.checklist.find(x => x.id === id);
+      if (it) it.checked = !it.checked;
+      renderChecklist();
+    }
+
+    function updateChecklistProgress() {
+      const total = APP_STATE.checklist.length;
+      const checked = APP_STATE.checklist.filter(x => x.checked).length;
+      const pct = Math.round((checked / total) * 100);
+
+      const progBar = document.getElementById('checklistProgressBar');
+      const progHeader = document.getElementById('checklistHeaderPercent');
+      const quickProg = document.getElementById('checklistProgressQuick');
+
+      if (progBar) progBar.style.width = pct + '%';
+      if (progHeader) progHeader.innerText = pct + '%';
+      if (quickProg) quickProg.innerText = `${checked}/${total} items ready`;
+    }
+
+    function resetChecklist() {
+      APP_STATE.checklist.forEach(x => x.checked = false);
+      renderChecklist();
+    }
+
+    /* -------------------------------------------------------------
+       OFFICER DASHBOARD ENGINE (Mr. Perera, FR8)
+       ------------------------------------------------------------- */
+    function renderOfficerTable(filterUrgency = 'all') {
+      const tbody = document.getElementById('officerRequestsTableBody');
+      if (!tbody) return;
+
+      const filtered = filterUrgency === 'all' 
+        ? APP_STATE.requests 
+        : APP_STATE.requests.filter(r => r.priority === filterUrgency);
+
+      tbody.innerHTML = filtered.map(req => {
+        let statusBadge = '<span class="bg-amber-950 text-amber-400 px-2.5 py-1 rounded-full font-bold border border-amber-800">Pending Review</span>';
+        if (req.status === 'Dispatched') {
+          statusBadge = '<span class="bg-blue-950 text-blue-400 px-2.5 py-1 rounded-full font-bold border border-blue-800">Team En Route</span>';
+        } else if (req.status === 'Resolved') {
+          statusBadge = '<span class="bg-emerald-950 text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-800">Resolved / Safe</span>';
+        }
+
+        const prioBadge = req.priority === 'High'
+          ? '<span class="bg-red-900/60 text-red-300 px-2 py-0.5 rounded font-extrabold border border-red-700">🔴 Critical</span>'
+          : '<span class="bg-amber-900/60 text-amber-300 px-2 py-0.5 rounded font-bold border border-amber-700">🟡 Moderate</span>';
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="p-3.5 font-mono font-bold text-white">${req.id}</td>
+            <td class="p-3.5">
+              <strong class="text-white block">${req.name}</strong>
+              <span class="text-slate-400 text-[11px]">${req.contact}</span>
+            </td>
+            <td class="p-3.5">
+              <span class="text-slate-200 block">${req.location}</span>
+              <span class="text-slate-500 font-mono text-[10px]">${req.latLong}</span>
+            </td>
+            <td class="p-3.5 text-slate-300 max-w-xs">${req.issue}</td>
+            <td class="p-3.5">${prioBadge}</td>
+            <td class="p-3.5 text-slate-400">${req.time}</td>
+            <td class="p-3.5">${statusBadge}</td>
+            <td class="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+              ${req.status === 'Pending' ? `
+                <button onclick="updateOfficerRequestStatus('${req.id}', 'Dispatched')" class="bg-blue-600 hover:bg-blue-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">
+                  Dispatch Rescue
+                </button>
+              ` : req.status === 'Dispatched' ? `
+                <button onclick="updateOfficerRequestStatus('${req.id}', 'Resolved')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow">
+                  Mark Safe
+                </button>
+              ` : `
+                <span class="text-slate-500 font-semibold text-xs">✓ Closed</span>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Update stat counters
+      const activeCount = APP_STATE.requests.filter(r => r.status === 'Pending').length;
+      const dispCount = APP_STATE.requests.filter(r => r.status === 'Dispatched').length;
+      const resCount = APP_STATE.requests.filter(r => r.status === 'Resolved').length;
+
+      document.getElementById('officerStatActive').innerText = activeCount;
+      document.getElementById('officerStatDispatched').innerText = dispCount;
+      document.getElementById('officerStatResolved').innerText = resCount;
+      document.getElementById('officerBadgeCount').innerText = activeCount;
+    }
+
+    function filterOfficerRequests(urgency) {
+      document.querySelectorAll('.officer-filter-btn').forEach(b => {
+        b.className = 'officer-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white';
+      });
+      event.target.className = 'officer-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white';
+      renderOfficerTable(urgency);
+    }
+
+    function updateOfficerRequestStatus(reqId, newStatus) {
+      const target = APP_STATE.requests.find(r => r.id === reqId);
+      if (target) {
+        target.status = newStatus;
+        renderOfficerTable();
+
+        // Also update mobile view badge if active
+        if (APP_STATE.activeTicketId === reqId) {
+          const badge = document.getElementById('sosLiveStatusBadge');
+          if (badge) {
+            badge.innerText = newStatus === 'Dispatched' ? '🚒 Rescue Team En Route' : '✓ Resolved / Safe';
+            badge.className = newStatus === 'Dispatched' 
+              ? 'bg-blue-100 text-blue-800 font-extrabold px-2 py-0.5 rounded-full'
+              : 'bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full';
+          }
+        }
+      }
+    }
+
+    function triggerSimulatedSOS() {
+      const randomId = '#EM-' + Math.floor(1000 + Math.random() * 9000);
+      const names = ['Dilum Bandara (Family)', 'Sunil Shantha', 'Asha Nisansala', 'P. Jayawardena'];
+      const chosenName = names[Math.floor(Math.random() * names.length)];
+      
+      APP_STATE.requests.unshift({
+        id: randomId,
+        name: chosenName,
+        contact: '071-' + Math.floor(1000000 + Math.random() * 9000000),
+        location: 'Kalutara South Riverside',
+        latLong: '6.5821° N, 79.9654° E',
+        issue: 'Flood water entering ground floor, need boat extraction',
+        priority: 'High',
+        time: 'Just now',
+        status: 'Pending'
+      });
+      playBeep(1100, 0.3);
+      renderOfficerTable();
+    }
+
+    /* -------------------------------------------------------------
+       TOAST UTILITY
+       ------------------------------------------------------------- */
+    function showToast(msg) {
+      const div = document.createElement('div');
+      div.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-2xl z-50 animate-bounce border border-slate-700';
+      div.innerText = msg;
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 3500);
+    }
+  </script>
+</body>
+</html>

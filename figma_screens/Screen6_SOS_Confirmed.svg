@@ -1,0 +1,51 @@
+<svg width="390" height="844" viewBox="0 0 390 844" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="390" height="844" rx="44" fill="#0B1120"/>
+  <text x="32" y="38" fill="#F8FAFC" font-family="Inter, sans-serif" font-size="14" font-weight="600">09:41</text>
+  <text x="320" y="38" fill="#F8FAFC" font-family="Inter, sans-serif" font-size="12" font-weight="600">5G 🔋</text>
+
+  <!-- Green Success Icon -->
+  <circle cx="195" cy="120" r="40" fill="#064E3B" stroke="#10B981" stroke-width="3"/>
+  <text x="195" y="132" text-anchor="middle" fill="#10B981" font-size="34">✓</text>
+
+  <text x="195" y="190" text-anchor="middle" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="20" font-weight="800">Distress Signal Logged</text>
+  <text x="195" y="210" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="12">Transmitted to Kalutara District Incident Center</text>
+
+  <!-- Ticket Card -->
+  <rect x="24" y="235" width="342" height="180" rx="20" fill="#1E293B" stroke="#334155"/>
+  <text x="44" y="268" fill="#94A3B8" font-family="Inter, sans-serif" font-size="11" font-weight="700">TICKET REFERENCE ID:</text>
+  <text x="345" y="268" text-anchor="end" fill="#EF4444" font-family="Courier, monospace" font-size="16" font-weight="900">#EM-8429</text>
+
+  <line x1="44" y1="285" x2="345" y2="285" stroke="#334155"/>
+
+  <text x="44" y="315" fill="#94A3B8" font-family="Inter, sans-serif" font-size="12">Status:</text>
+  <rect x="200" y="300" width="145" height="24" rx="12" fill="#78350F"/>
+  <text x="272" y="316" text-anchor="middle" fill="#FDE68A" font-family="Inter, sans-serif" font-size="10.5 font-weight=700">⏳ Pending Local Officer</text>
+
+  <text x="44" y="350" fill="#94A3B8" font-family="Inter, sans-serif" font-size="12">GPS Location:</text>
+  <text x="345" y="350" text-anchor="end" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="12 font-weight=600">6.585° N, 79.960° E</text>
+
+  <text x="44" y="385" fill="#94A3B8" font-family="Inter, sans-serif" font-size="12">Priority Level:</text>
+  <text x="345" y="385" text-anchor="end" fill="#F87171" font-family="Inter, sans-serif" font-size="12 font-weight=700">🔴 High (Flash Flood)</text>
+
+  <!-- Fallback Warning Box -->
+  <rect x="24" y="440" width="342" height="155" rx="20" fill="#451A03" stroke="#D97706"/>
+  <text x="44" y="470" fill="#FDE68A" font-family="Inter, sans-serif" font-size="12" font-weight="800">⚠️ Direct Rescue Fallback</text>
+  <text x="44" y="492" fill="#FEF3C7" font-family="Inter, sans-serif" font-size="11">If cellular telephone lines are functional and life is in</text>
+  <text x="44" y="508" fill="#FEF3C7" font-family="Inter, sans-serif" font-size="11">immediate danger, dial emergency hotlines directly:</text>
+
+  <rect x="44" y="525" width="90" height="42" rx="10" fill="#FFFFFF"/>
+  <text x="89" y="550" text-anchor="middle" fill="#0F172A" font-family="Inter, sans-serif" font-size="12" font-weight="800">📞 117</text>
+  <text x="89" y="562" text-anchor="middle" fill="#64748B" font-family="Inter, sans-serif" font-size="8">DMC</text>
+
+  <rect x="150" y="525" width="90" height="42" rx="10" fill="#FFFFFF"/>
+  <text x="195" y="550" text-anchor="middle" fill="#0F172A" font-family="Inter, sans-serif" font-size="12" font-weight="800">🚑 1990</text>
+  <text x="195" y="562" text-anchor="middle" fill="#64748B" font-family="Inter, sans-serif" font-size="8">SUWA SERIYA</text>
+
+  <rect x="256" y="525" width="90" height="42" rx="10" fill="#FFFFFF"/>
+  <text x="301" y="550" text-anchor="middle" fill="#0F172A" font-family="Inter, sans-serif" font-size="12" font-weight="800">👮 119</text>
+  <text x="301" y="562" text-anchor="middle" fill="#64748B" font-family="Inter, sans-serif" font-size="8">POLICE</text>
+
+  <!-- Return Button -->
+  <rect x="24" y="690" width="342" height="56" rx="20" fill="#2563EB"/>
+  <text x="195" y="725" text-anchor="middle" fill="#FFFFFF" font-family="Inter, sans-serif" font-size="15" font-weight="800">Return to Emergency Screen</text>
+</svg>
