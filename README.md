@@ -61,6 +61,3 @@ No installation or backend server setup required!
 - `index.html` — Fully functional interactive prototype (Mobile App + Officer Dashboard).
 - `final presentation.pptx` — 13-slide visual presentation deck.
 - `DisasterAid_Comprehensive_HCI_Report.pdf` — Complete HCI specification report (Fitts' Law, Shneiderman's 8 Rules, Norman's models, QOC trade-offs).
-- `DisasterAid_Presentation_Speech_Guide.pdf` — Slide-by-slide English speech script & Sinhala guide.
-- `DisasterAid_Demo_Speech_Guide.pdf` — Step-by-step interactive live prototype demo script.
-- `DisasterAid_Viva_QA_Guide.pdf` — Top 9 Viva defense questions and model answers.

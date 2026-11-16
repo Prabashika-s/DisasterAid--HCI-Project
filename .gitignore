@@ -10,3 +10,12 @@ user_presentation_analysis.txt
 photos/
 *.jpeg
 *.jpg
+
+# Figma Screens
+figma_screens/
+
+# Unneeded guides
+DisasterAid_Demo_Speech_Guide.*
+DisasterAid_Presentation_Speech_Guide.*
+DisasterAid_Viva_QA_Guide.*
+DisasterAid_HCI_Project_Proposal.pdf
